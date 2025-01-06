@@ -9,6 +9,7 @@ dotenv.config();
 
 import apiLogging from './middleware/apiLogging.js';
 import AWSS3Routes from './routes/AWS_S3.js';
+import AWSRekognitionRoutes from './routes/AWS_Rekognition.js';
 
 // CORS configuration
 const allowedOrigins = [
@@ -65,6 +66,7 @@ app.get('/', (req, res, next) => {
     res.send('Welcome to Symmetrical Server!');
   });
 app.use('/s3', AWSS3Routes);
+app.use('/rekognition', AWSRekognitionRoutes);
 
 // Start the server
 const PORT = process.env.PORT;
