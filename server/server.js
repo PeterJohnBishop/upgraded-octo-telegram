@@ -2,32 +2,37 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import multer from 'multer';
 import http from 'http';
 import { Server } from 'socket.io'; 
 const app = express();
 dotenv.config();
 
-// CORS Setup
+import apiLogging from './middleware/apiLogging.js';
+import AWSS3Routes from './routes/AWS_S3.js';
+
+// CORS configuration
 const allowedOrigins = [
-    /^http:\/\/localhost(:\d+)?$/, //localhost:allports
+  /^http:\/\/localhost(:\d+)?$/, //localhost:allports
 ];
 const corsOptions = {
-    origin: (origin, callback) => {
-        if (!origin) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        callback(null, true);
-        } else if (allowedOrigins.some(o => typeof o === 'string' ? o === origin : o.test(origin))) {
-        callback(null, true);
-        } else {
-        callback(new Error('Not allowed by CORS'));
-        }
-    },
+  origin: (origin, callback) => {
+      if (!origin) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      callback(null, true);
+      } else if (allowedOrigins.some(o => typeof o === 'string' ? o === origin : o.test(origin))) {
+      callback(null, true);
+      } else {
+      callback(new Error('Not allowed by CORS'));
+      }
+  },
 };
 app.use(cors());
 app.use(cors(corsOptions));
+app.use(bodyParser.json());
 
-// Socket.IO Setup 
+app.use(apiLogging);
+
+// Socket.IO configuration 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -55,13 +60,11 @@ const configureSocketIO = (io) => {
   };
 configureSocketIO(io); 
 
-// Middleware
-app.use(bodyParser.json());
-
 // Routes
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
     res.send('Welcome to Symmetrical Server!');
   });
+app.use('/s3', AWSS3Routes);
 
 // Start the server
 const PORT = process.env.PORT;
