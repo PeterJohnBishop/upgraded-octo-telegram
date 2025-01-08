@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http';
+import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io'; 
 import apiLogging from './middleware/apiLogging.js';
 import AWSS3Routes from './routes/AWS_S3.js';
@@ -50,14 +51,28 @@ const io = new Server(server, {
   },
 });
 const configureSocketIO = (io) => {
-    io.on('connection', (socket) => {
+    io.on('connection', (_socket) => {
       console.log('A user connected on port:', PORT);
+    });
+
+      socket.on('verifyToken', (data) => {
+        jwt.verify(data.token, process.env.JWT_SECRET, (err, _decoded) => {
+          if (err) {
+            socket.emit('tokenVerified', { verified: false });
+          } else {
+            socket.emit('tokenVerified', { verified: true });
+          }
+        });
+      });
+
+    io.on('disconnect', (_socket) => {
+      console.log('A user disconnected on port:', PORT);
     });
   };
 configureSocketIO(io); 
 
 // Routes
-app.get('/', (req, res, next) => {
+app.get('/', (_req, res, _next) => {
     res.send('Welcome to Symmetrical Server!');
   });
 app.use('/s3', AWSS3Routes);
