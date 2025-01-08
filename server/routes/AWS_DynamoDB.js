@@ -28,7 +28,7 @@ router.post('/item', async (req, res) => {
     };
 
     try {
-        await ddbDocClient.send(new PutCommand(params));
+        await ddbDocClient.send(new PutCommand(params));nbb    
         res.status(201).json({ message: 'Item created successfully', item: params.Item });
     } catch (error) {
         console.error('Error creating item:', error);

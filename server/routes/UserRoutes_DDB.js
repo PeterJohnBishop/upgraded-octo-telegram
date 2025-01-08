@@ -3,7 +3,6 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import authenticateToken from '../middleware/jwtVerify.js';
 import crypto from 'crypto';
@@ -31,6 +30,13 @@ function hashString(string) {
 
     return hash;
 }
+
+// User: {
+//     id: string; <-- hashString(email)
+//     name: string;
+//     email: string;
+//     password: string; c<-- bcrypt.hash(password, 10)
+// }
 
 // Create New User
 router.post('/user', async (req, res) => {
