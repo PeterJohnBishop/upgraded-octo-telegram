@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authenticateToken from '../middleware/jwtVerify.js';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import e from 'express';
 
 const router = express.Router();
 dotenv.config();
@@ -120,3 +121,5 @@ router.delete('/wishlist/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Error deleting wishlist', errorMessage: error.message });
     }
 });
+
+export default router;
