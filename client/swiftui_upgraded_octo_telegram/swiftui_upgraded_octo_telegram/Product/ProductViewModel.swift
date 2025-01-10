@@ -17,11 +17,20 @@ class ProductViewModel: Observable {
     let baseURL = "https://your-backend-url.com/api/products"
 
     func createProduct(newProduct: ProductModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: baseURL) else { return }
+        guard let url = URL(string: "\(baseURL)/product") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(newProduct)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
@@ -35,23 +44,22 @@ class ProductViewModel: Observable {
             }
         }.resume()
     }
-
-    func fetchProducts() {
-        guard let url = URL(string: baseURL) else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                } else if let data = data {
-                    self.products = (try? JSONDecoder().decode([ProductModel].self, from: data)) ?? []
-                }
-            }
-        }.resume()
-    }
-
+    
     func fetchProductById(id: String) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        guard let url = URL(string: "\(baseURL)/product/\(id)") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self.errorMessage = error.localizedDescription
@@ -62,12 +70,46 @@ class ProductViewModel: Observable {
         }.resume()
     }
 
+    func fetchProducts() {
+        guard let url = URL(string: "\(baseURL)/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                } else if let data = data {
+                    self.products = (try? JSONDecoder().decode([ProductModel].self, from: data)) ?? []
+                }
+            }
+        }.resume()
+    }
+
     func updateProduct(id: String, updatedProduct: ProductModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/product/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(updatedProduct)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {
@@ -83,9 +125,18 @@ class ProductViewModel: Observable {
     }
 
     func deleteProduct(id: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/product/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {

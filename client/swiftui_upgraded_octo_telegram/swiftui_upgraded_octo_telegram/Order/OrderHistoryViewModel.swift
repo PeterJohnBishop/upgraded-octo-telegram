@@ -17,11 +17,20 @@ class HistoryViewModel: Observable {
     let baseURL = "https://your-backend-url.com/api/products"
 
     func createHistory(newHistory: HistoryModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: baseURL) else { return }
+        guard let url = URL(string: "\(baseURL)/history") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(newHistory)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
@@ -35,23 +44,22 @@ class HistoryViewModel: Observable {
             }
         }.resume()
     }
-
-    func fetchHistorys() {
-        guard let url = URL(string: baseURL) else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                } else if let data = data {
-                    self.historys = (try? JSONDecoder().decode([HistoryModel].self, from: data)) ?? []
-                }
-            }
-        }.resume()
-    }
-
+    
     func fetchHistoryById(id: String) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        guard let url = URL(string: "\(baseURL)/history/\(id)") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self.errorMessage = error.localizedDescription
@@ -62,12 +70,46 @@ class HistoryViewModel: Observable {
         }.resume()
     }
 
+    func fetchHistorys() {
+        guard let url = URL(string: "\(baseURL)/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                } else if let data = data {
+                    self.historys = (try? JSONDecoder().decode([HistoryModel].self, from: data)) ?? []
+                }
+            }
+        }.resume()
+    }
+
     func updateHistory(id: String, updatedHistory: HistoryModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/history/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(updatedHistory)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {
@@ -83,9 +125,18 @@ class HistoryViewModel: Observable {
     }
 
     func deleteHistory(id: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/history/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {

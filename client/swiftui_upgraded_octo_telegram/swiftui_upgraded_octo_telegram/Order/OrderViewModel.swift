@@ -14,14 +14,23 @@ class OrderViewModel: Observable {
     var order: OrderModel? = nil
     var errorMessage: String? = nil
 
-    let baseURL = "https://your-backend-url.com/api/products"
+    let baseURL = "https://your-backend-url.com/api/orders"
 
     func createOrder(newOrder: OrderModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: baseURL) else { return }
+        guard let url = URL(string: "\(baseURL)/order") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(newOrder)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
@@ -35,23 +44,22 @@ class OrderViewModel: Observable {
             }
         }.resume()
     }
-
-    func fetchOrders() {
-        guard let url = URL(string: baseURL) else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                } else if let data = data {
-                    self.orders = (try? JSONDecoder().decode([OrderModel].self, from: data)) ?? []
-                }
-            }
-        }.resume()
-    }
-
+    
     func fetchOrderById(id: String) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        guard let url = URL(string: "\(baseURL)/order/\(id)") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self.errorMessage = error.localizedDescription
@@ -62,12 +70,46 @@ class OrderViewModel: Observable {
         }.resume()
     }
 
+    func fetchOrders() {
+        guard let url = URL(string: "\(baseURL)/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                } else if let data = data {
+                    self.orders = (try? JSONDecoder().decode([OrderModel].self, from: data)) ?? []
+                }
+            }
+        }.resume()
+    }
+
     func updateOrder(id: String, updatedOrder: OrderModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/order/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(updatedOrder)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {
@@ -83,9 +125,18 @@ class OrderViewModel: Observable {
     }
 
     func deleteOrder(id: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/order/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {

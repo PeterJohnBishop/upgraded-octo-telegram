@@ -17,11 +17,20 @@ class WishlistViewModel: Observable {
     let baseURL = "https://your-backend-url.com/api/wishlists"
 
     func createWishlist(newWishlist: WishlistModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: baseURL) else { return }
+        guard let url = URL(string: "\(baseURL)/wishlist") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(newWishlist)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
@@ -36,9 +45,46 @@ class WishlistViewModel: Observable {
         }.resume()
     }
 
+    func fetchWishlistById(id: String) {
+        guard let url = URL(string: "\(baseURL)/wishlist/\(id)") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                } else if let data = data {
+                    self.wishlist = try? JSONDecoder().decode(WishlistModel.self, from: data)
+                }
+            }
+        }.resume()
+    }
+    
     func fetchWishlists() {
-        guard let url = URL(string: baseURL) else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        guard let url = URL(string: "\(baseURL)/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self.errorMessage = error.localizedDescription
@@ -49,25 +95,22 @@ class WishlistViewModel: Observable {
         }.resume()
     }
 
-    func fetchWishlistById(id: String) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                } else if let data = data {
-                    self.wishlist = try? JSONDecoder().decode(WishlistModel.self, from: data)
-                }
-            }
-        }.resume()
-    }
 
     func updateWishlist(id: String, updatedWishlist: WishlistModel, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/wishlist/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(updatedWishlist)
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {
@@ -83,9 +126,18 @@ class WishlistViewModel: Observable {
     }
 
     func deleteWishlist(id: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)/\(id)") else { return }
+        guard let url = URL(string: "\(baseURL)/wishlist/\(id)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
+        
+        if let jwt = UserDefaults.standard.string(forKey: "jwtToken") {
+            request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        } else {
+            DispatchQueue.main.async {
+                self.errorMessage = "JWT not available"
+            }
+            return
+        }
 
         URLSession.shared.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {

@@ -15,6 +15,7 @@ import OrderRoutesDDB from './routes/OrderRoutes_DDB.js';
 import UserWishlistRoutesDDB from './routes/UserWishlistRoutes_DDB.js';
 import ProductReviewRoutesDDB from './routes/ProductReviewRoutes_DDB.js';
 import OrderHistoryRoutesDDB from './routes/OrderHistoryRoutes_DDB.js';
+import { clear } from 'console';
 
 
 const app = express();
@@ -51,24 +52,24 @@ const io = new Server(server, {
   },
 });
 const configureSocketIO = (io) => {
-    io.on('connection', (_socket) => {
+  io.on('connection', (socket) => {
       console.log('A user connected on port:', PORT);
-    });
 
       socket.on('verifyToken', (data) => {
-        jwt.verify(data.token, process.env.JWT_SECRET, (err, _decoded) => {
-          if (err) {
-            socket.emit('tokenVerified', { verified: false });
-          } else {
-            socket.emit('tokenVerified', { verified: true });
-          }
-        });
+          jwt.verify(data.token, process.env.JWT_SECRET, (err, _decoded) => {
+              if (err) {
+                  socket.emit('tokenVerified', { verified: false });
+              } else {
+                  socket.emit('tokenVerified', { verified: true });
+              }
+          });
       });
 
-    io.on('disconnect', (_socket) => {
-      console.log('A user disconnected on port:', PORT);
-    });
-  };
+      socket.on('disconnect', () => {
+          console.log('A user disconnected on port:', PORT);
+      });
+  });
+};
 configureSocketIO(io); 
 
 // Routes
