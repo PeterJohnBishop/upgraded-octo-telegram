@@ -82,6 +82,7 @@ class UserViewModel: Observable {
                     if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                         let responseData = try JSONDecoder().decode(AuthResponse.self, from: data)
                         UserDefaults.standard.set(responseData.jwt, forKey: "jwtToken")
+                        self.user = responseData.user
                         completion(true)
                     } else {
                         let errorResponse = try JSONDecoder().decode(ErrorResponse.self, from: data)

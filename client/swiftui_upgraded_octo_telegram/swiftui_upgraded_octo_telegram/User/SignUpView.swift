@@ -14,7 +14,7 @@ struct SignUpView: View {
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false
     @State var userCreated: Bool = false
-    @State var userAUthenticated: Bool = false
+    @State var userAuthenticated: Bool = false
     
     
     var body: some View {
@@ -54,11 +54,13 @@ struct SignUpView: View {
                         Task{
                             userVM.createUser(newUser: newUser, completion: { success in
                                 userCreated = success
+                                print("userCreated = \(userCreated)")
                             })
                             if userCreated {
                                 userVM.authenticateUser(email: newUser.email, password: newUser.password) { success in
-                                    userAUthenticated = success
-                                    print("userAuthenticated = \(userAUthenticated)")
+                                    userAuthenticated = success
+                                    print("userAuthenticated = \(userAuthenticated)")
+                                    SocketService.shared.socket.emit("userAuthenticated", ["user": userVM.user?.name])
                                 }
                             }
                         }
@@ -90,8 +92,8 @@ struct SignUpView: View {
                 } message: {
                     Text(userVM.errorMessage ?? "")
                 }
-                .navigationDestination(isPresented: $userAUthenticated, destination: {
-                    //                                           ProfileSetupView().navigationBarBackButtonHidden(true)
+                .navigationDestination(isPresented: $userAuthenticated, destination: {
+                    HomeView().navigationBarBackButtonHidden(true)
                 })
                 Spacer()
                 HStack{

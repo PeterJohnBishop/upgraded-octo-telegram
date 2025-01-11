@@ -12,12 +12,10 @@ struct ContentView: View {
 
     var body: some View {
         VStack{
-            Text("Hello World")
-        }.onAppear()
-    }
-    
-    private func onAppear() {
-        SocketService.shared.socket.connect()
+            LoginView()
+        }.onAppear{
+            SocketService.shared.socket.connect()
+        }
     }
 }
 

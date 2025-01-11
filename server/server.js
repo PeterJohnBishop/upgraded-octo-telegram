@@ -59,11 +59,17 @@ const configureSocketIO = (io) => {
           jwt.verify(data.token, process.env.JWT_SECRET, (err, _decoded) => {
               if (err) {
                   socket.emit('tokenVerified', { verified: false });
+                  console.log("token invalid")
               } else {
                   socket.emit('tokenVerified', { verified: true });
+                  console.log("token verified")
               }
           });
       });
+
+      socket.on('userAuthenticated', (data) => {
+        console.log(`${data['user']} is logged in.`)
+      })
 
       socket.on('disconnect', () => {
           console.log('A user disconnected on port:', PORT);

@@ -15,6 +15,7 @@ enum SocketConfig {
 
 @Observable class SocketService {
     
+    var connected: Bool = false
     var message: String = ""
     static let shared = SocketService()
     private let manager: SocketManager
@@ -31,6 +32,7 @@ enum SocketConfig {
         
         socket.on(clientEvent: .connect) { data, ack in
             self.message = "Socket connected"
+            self.connected = true
         }
         
         socket.connect()
