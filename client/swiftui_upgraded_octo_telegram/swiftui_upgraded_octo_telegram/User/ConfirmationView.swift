@@ -1,13 +1,13 @@
 //
-//  LoginView.swift
+//  ConfirmationView.swift
 //  swiftui_upgraded_octo_telegram
 //
-//  Created by m1_air on 1/10/25.
+//  Created by m1_air on 1/12/25.
 //
 
 import SwiftUI
 
-struct LoginView: View {
+struct ConfirmationView: View {
     @State var userVM: UserViewModel = UserViewModel()
     @State var currentUser: UserModel = UserModel(id: 0, name: "", email: "", password: "")
     @State var confirmPassword: String = ""
@@ -15,13 +15,14 @@ struct LoginView: View {
     @State var showAlert: Bool = false
     @State var userAuthenticated: Bool = false
     @State var socketConnected: Bool = false
-    
-    
+
     var body: some View {
         NavigationStack{
             VStack{
                 Spacer()
-                Text("Login").font(.system(size: 34))
+                Text("Success!").font(.system(size: 34))
+                    .fontWeight(.ultraLight)
+                Text("You can now login.").font(.system(size: 24))
                     .fontWeight(.ultraLight)
                 Divider().padding()
                 TextField("Email", text: $currentUser.email)
@@ -38,18 +39,14 @@ struct LoginView: View {
                 if SocketService.shared.connected {
                     Button("Submit", action: {
                         Task{
-                            do {
-                                let authenticated = try await userVM.authenticateUser(email: currentUser.email, password: currentUser.password)
-                                DispatchQueue.main.async {
+                            let authenticated = try await userVM.authenticateUser(email: currentUser.email, password: currentUser.password)
+                                if authenticated {
                                     userAuthenticated = authenticated
-                                }
-                            } catch {
-                                DispatchQueue.main.async {
-                                    showAlert = true
-                                    userVM.errorMessage = error.localizedDescription
+                                    SocketService.shared.socket.emit("userAuthenticated", ["user": userVM.user.name])
+                                } else {
+                                    userVM.errorMessage = "Error logging in. Please try again!"
                                 }
                             }
-                        }
                     })
                     .fontWeight(.ultraLight)
                     .foregroundColor(.black)
@@ -100,5 +97,5 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView()
+    ConfirmationView()
 }

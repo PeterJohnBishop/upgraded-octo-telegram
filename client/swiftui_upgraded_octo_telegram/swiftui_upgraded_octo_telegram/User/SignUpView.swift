@@ -9,12 +9,11 @@ import SwiftUI
 
 struct SignUpView: View {
     @State var userVM: UserViewModel = UserViewModel()
-    @State var newUser: UserModel = UserModel(id: "", name: "", email: "", password: "")
+    @State var newUser: UserModel = UserModel(id: 0, name: "", email: "", password: "")
     @State var confirmPassword: String = ""
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false
     @State var userCreated: Bool = false
-    @State var userAuthenticated: Bool = false
     
     
     var body: some View {
@@ -51,17 +50,12 @@ struct SignUpView: View {
                 
                 Button("Submit", action: {
                     if confirmPassword == newUser.password {
-                        Task{
-                            userVM.createUser(newUser: newUser, completion: { success in
-                                userCreated = success
-                                print("userCreated = \(userCreated)")
-                            })
-                            if userCreated {
-                                userVM.authenticateUser(email: newUser.email, password: newUser.password) { success in
-                                    userAuthenticated = success
-                                    print("userAuthenticated = \(userAuthenticated)")
-                                    SocketService.shared.socket.emit("userAuthenticated", ["user": userVM.user?.name])
-                                }
+                        Task {
+                            do {
+                                let created = try await userVM.createUser(newUser: newUser)
+                                    userCreated = created
+                            } catch {
+                                userVM.errorMessage = "An error occurred: \(error.localizedDescription)"
                             }
                         }
                     } else {
@@ -84,16 +78,16 @@ struct SignUpView: View {
                 })
                 .alert("Error", isPresented: $showAlert) {
                     Button("OK", role: .cancel) {
-                        userVM.user?.email = ""
-                        userVM.user?.password = ""
+                        userVM.user.email = ""
+                        userVM.user.password = ""
                         confirmPassword = ""
                         userVM.errorMessage = nil
                     }
                 } message: {
                     Text(userVM.errorMessage ?? "")
                 }
-                .navigationDestination(isPresented: $userAuthenticated, destination: {
-                    HomeView().navigationBarBackButtonHidden(true)
+                .navigationDestination(isPresented: $userCreated, destination: {
+                    ConfirmationView().navigationBarBackButtonHidden(true)
                 })
                 Spacer()
                 HStack{

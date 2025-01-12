@@ -8,7 +8,7 @@
 import Foundation
 
 struct UserModel: Identifiable, Codable {
-    var id: String // Computed as hashString(email)
+    var id: Int // Computed as hashString(email)
     var name: String
     var email: String
     var password: String // Computed as bcrypt.hash(password, 10)

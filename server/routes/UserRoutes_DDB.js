@@ -27,12 +27,13 @@ function hashString(string) {
     const normalizedString = string.toLowerCase().trim();
     // Create a SHA-256 hash of the normalized email
     const hash = crypto.createHash('sha256').update(normalizedString).digest('hex');
+    const numericHash = parseInt(hash.slice(0, 8), 16) % 1000000000;
 
-    return hash;
+    return numericHash;
 }
 
 // User: {
-//     id: string; <-- hashString(email)
+//     id: string; <-- numericHash
 //     name: string;
 //     email: string;
 //     password: string; c<-- bcrypt.hash(password, 10)

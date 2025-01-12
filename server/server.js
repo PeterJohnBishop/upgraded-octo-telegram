@@ -10,13 +10,6 @@ import AWSS3Routes from './routes/AWS_S3.js';
 import AWSRekognitionRoutes from './routes/AWS_Rekognition.js';
 import AWSDynamoDBRoutes from './routes/AWS_DynamoDB.js';
 import UserRoutesDDB from './routes/UserRoutes_DDB.js';
-import ProductRoutesDDB from './routes/ProductRoutes_DDB.js';
-import OrderRoutesDDB from './routes/OrderRoutes_DDB.js';
-import UserWishlistRoutesDDB from './routes/UserWishlistRoutes_DDB.js';
-import ProductReviewRoutesDDB from './routes/ProductReviewRoutes_DDB.js';
-import OrderHistoryRoutesDDB from './routes/OrderHistoryRoutes_DDB.js';
-import { clear } from 'console';
-
 
 const app = express();
 dotenv.config();
@@ -86,11 +79,6 @@ app.use('/s3', AWSS3Routes);
 app.use('/rekognition', AWSRekognitionRoutes);
 app.use('/dynamodb', AWSDynamoDBRoutes);
 app.use('/users', UserRoutesDDB);
-app.use('/wishlist', UserWishlistRoutesDDB);
-app.use('/products', ProductRoutesDDB);
-app.use('/reviews', ProductReviewRoutesDDB);
-app.use('/orders', OrderRoutesDDB);
-app.use('/history', OrderHistoryRoutesDDB);
 
 // Start the server
 const PORT = process.env.PORT;
