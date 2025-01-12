@@ -105,6 +105,7 @@ class UserViewModel: Observable {
         let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONDecoder().decode(UserModel.self, from: data)
     }
+    
     // Read all users
     func fetchUsers() async throws -> [UserModel] {
         guard let url = URL(string: "\(baseURL)/") else {
@@ -123,6 +124,7 @@ class UserViewModel: Observable {
         let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONDecoder().decode([UserModel].self, from: data)
     }
+    
     // Update a user
     func updateUser(userId: String, updatedUser: UserModel) async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/user/\(userId)") else {

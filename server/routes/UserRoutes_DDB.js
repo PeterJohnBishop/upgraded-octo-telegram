@@ -50,6 +50,7 @@ router.post('/user', async (req, res) => {
             Item: { id, name, email, password }, 
         };
         await ddbDocClient.send(new PutCommand(params));
+        console.log(res)
         res.status(201).json({ message: 'User created successfully', item: params.Item });
     } catch (error) {
         console.error('Error creating user:', error);
@@ -87,7 +88,6 @@ router.post('/auth', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching user:', error);
         res.status(500).json({ error: 'Error fetching user' });
     }   
 });
@@ -106,13 +106,12 @@ router.get('/user/:id', authenticateToken, async (req, res) => {
         }
         res.status(200).json(Item);
     } catch (error) {
-        console.error('Error fetching user:', error);
         res.status(500).json({ error: 'Error fetching user' });
     }   
 });
 
 // List - Get all users
-router.get('/users', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     const params = {
         TableName: TABLE_NAME,
     };
@@ -120,7 +119,6 @@ router.get('/users', authenticateToken, async (req, res) => {
         const { Items } = await ddbDocClient.send(new ScanCommand(params));
         res.status(200).json(Items);
     } catch (error) {
-        console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Error fetching users' });
     }
 });
@@ -146,7 +144,6 @@ router.put('/user/:id', authenticateToken, async (req, res) => {
         await ddbDocClient.send(new UpdateCommand(params));
         res.status(200).json({ message: 'User updated successfully', item: params.Item });
     } catch (error) {
-        console.error('Error updating user:', error);
         res.status(500).json({ error: 'Error updating user' });
     }
 });
@@ -162,7 +159,6 @@ router.delete('/user/:id', authenticateToken, async (req, res) => {
         await ddbDocClient.send(new DeleteCommand(params));
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
-        console.error('Error deleting user:', error);
         res.status(500).json({ error: 'Error deleting user' });
     }
 });
