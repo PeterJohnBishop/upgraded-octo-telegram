@@ -11,9 +11,10 @@ struct ListUsersView: View {
     @State private var userVM: UserViewModel = UserViewModel()
     @State private var allUsers: [UserModel] = []
     @State private var showAlert: Bool = false
+    let currentUserId = UserDefaults.standard.string(forKey: "user_id")
     
     var body: some View {
-        VStack {
+        ScrollView {
             if allUsers.isEmpty {
                 ProgressView()
                     .onAppear {
@@ -30,7 +31,9 @@ struct ListUsersView: View {
                     }
             } else {
                 ForEach(allUsers, id: \.id) { user in
-                    Text(user.name)
+                    if user.id != currentUserId {
+                        Text(user.name)
+                    }
                 }
             }
         }

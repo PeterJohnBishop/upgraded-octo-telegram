@@ -11,7 +11,7 @@ import SwiftUI
 
 class UserViewModel: Observable {
     var users: [UserModel] = [] // List of all users
-    var user: UserModel = UserModel(id: 0, name: "", email: "", password: "")  
+    var user: UserModel = UserModel(id: "", name: "", email: "", password: "")  
     var errorMessage: String? = nil
     
     struct AuthResponse: Codable {
@@ -28,7 +28,7 @@ class UserViewModel: Observable {
         let message: String
     }
 
-    let baseURL = "http://localhost:8080/users" // Replace with your backend URL
+    let baseURL = "http://localhost:8080/users" 
 
     // Create a new user
     func createUser(newUser: UserModel) async throws -> Bool {
@@ -79,6 +79,7 @@ class UserViewModel: Observable {
         if httpResponse.statusCode == 200 {
             let responseData = try JSONDecoder().decode(AuthResponse.self, from: data)
             UserDefaults.standard.set(responseData.jwt, forKey: "jwtToken")
+            UserDefaults.standard.set(responseData.user.id, forKey: "user_id")
             self.user = responseData.user
             return true
         } else {

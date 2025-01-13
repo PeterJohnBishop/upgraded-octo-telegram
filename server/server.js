@@ -10,6 +10,7 @@ import AWSS3Routes from './routes/AWS_S3.js';
 import AWSRekognitionRoutes from './routes/AWS_Rekognition.js';
 import AWSDynamoDBRoutes from './routes/AWS_DynamoDB.js';
 import UserRoutesDDB from './routes/UserRoutes_DDB.js';
+import ProductRoutesDDB from './routes/ProductRoutes_DDB.js'
 
 const app = express();
 dotenv.config();
@@ -79,6 +80,7 @@ app.use('/s3', AWSS3Routes);
 app.use('/rekognition', AWSRekognitionRoutes);
 app.use('/dynamodb', AWSDynamoDBRoutes);
 app.use('/users', UserRoutesDDB);
+app.use('/products', ProductRoutesDDB)
 
 // Start the server
 const PORT = process.env.PORT;

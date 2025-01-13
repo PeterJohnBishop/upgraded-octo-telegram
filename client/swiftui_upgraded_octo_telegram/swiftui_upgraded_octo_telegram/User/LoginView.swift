@@ -9,7 +9,7 @@ import SwiftUI
 
 struct LoginView: View {
     @State var userVM: UserViewModel = UserViewModel()
-    @State var currentUser: UserModel = UserModel(id: 0, name: "", email: "", password: "")
+    @State var currentUser: UserModel = UserModel(id: "", name: "", email: "", password: "")
     @State var confirmPassword: String = ""
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false

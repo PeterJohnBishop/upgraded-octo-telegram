@@ -2,8 +2,6 @@ import express from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import authenticateToken from '../middleware/jwtVerify.js';
 import crypto from 'crypto';
 
@@ -20,7 +18,7 @@ const dynamoDbClient = new DynamoDBClient({
 const ddbDocClient = DynamoDBDocumentClient.from(dynamoDbClient);
 
 // DynamoDB Table Name
-const TABLE_NAME = process.env.USERS_AWS_DYNAMODB_TABLE_NAME;
+const TABLE_NAME = process.env.PRODUCTS_AWS_DYNAMODB_TABLE_NAME;
 
 function hashString(string) {
     // Normalize the email: lowercase and trim whitespace
@@ -32,59 +30,24 @@ function hashString(string) {
     return numericHash;
 }
 
-// Create New User
-router.post('/user', async (req, res) => {
-    const { name, email } = req.body;
-    const id = `u_${hashString(email)}`;
+// Create New Product
+router.post('/product', async (req, res) => {
+    const { name, description, image, price, category, featured } = req.body;
+    const id = `p_${hashString(name)}`;
     try {
-        const password = await bcrypt.hash(req.body.password, 10);
         const params = {
             TableName: TABLE_NAME,
-            Item: { id, name, email, password }, 
+            Item: { id, name, description, image, price, category, featured }, 
         };
         await ddbDocClient.send(new PutCommand(params));
-        res.status(201).json({ message: 'User created successfully', item: params.Item });
+        res.status(201).json({ message: 'Product created successfully', item: params.Item });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Authenticate User
-router.post('/auth', async (req, res) => {
-    const user = req.body;
-    const params = {
-        TableName: TABLE_NAME,
-        Key: { id: `u_${hashString(user.email)}` },
-    };
-    try {
-        const { Item } = await ddbDocClient.send(new GetCommand(params));
-        if (!Item) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        bcrypt.compare(user.password, Item.password).then((match) => {
-            if (match) {
-                const payload = {
-                    id: Item.id,
-                    email: Item.email,
-                };
-                jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 86400 }, (error, token) => {
-                    if (error) {
-                        return res.status(401).json({ message: error });
-                    } else {
-                        return res.status(200).json({ message: 'Login Success!', user: Item, jwt: token });
-                    }
-                });
-            } else {
-                return res.status(409).json({ message: 'Email or password is incorrect.' });
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }   
-});
-
-// Read - Get a single user by ID
-router.get('/user/:id', authenticateToken, async (req, res) => {
+// Read - Get a single product by ID
+router.get('/product/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const params = {
         TableName: TABLE_NAME,
@@ -93,7 +56,7 @@ router.get('/user/:id', authenticateToken, async (req, res) => {
     try {
         const { Item } = await ddbDocClient.send(new GetCommand(params));
         if (!Item) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'Product not found' });
         }
         res.status(200).json(Item);
     } catch (error) {
@@ -101,7 +64,7 @@ router.get('/user/:id', authenticateToken, async (req, res) => {
     }   
 });
 
-// List - Get all users
+// List - Get all products
 router.get('/', authenticateToken, async (req, res) => {
     const params = {
         TableName: TABLE_NAME,
@@ -114,33 +77,41 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Update - Modify an existing user
-router.put('/user/:id', authenticateToken, async (req, res) => {
+// Update - Modify an existing product
+router.put('/product/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, description, image, price, category, featured } = req.body;
     const params = {
         TableName: TABLE_NAME,
         Key: { id },
-        UpdateExpression: 'set #name = :name, #email = :email',
+        UpdateExpression: 'set #name = :name, #description = :description, #image = :image, #price = :price, #category = :category, #featured = :featured',
         ExpressionAttributeNames: {
             '#name': 'name',
-            '#email': 'email',
+            '#description': 'description',
+            '#image': 'image',
+            '#price': 'price',
+            '#cateogry': 'cateogry',
+            '#featured': 'featured'
         },
         ExpressionAttributeValues: {
             ':name': name,
-            ':email': email,
+            ':description': description,
+            ':image': image,
+            ':price': price,
+            ':category': category,
+            ':featured': featured
         },
     };
     try {
         await ddbDocClient.send(new UpdateCommand(params));
-        res.status(200).json({ message: 'User updated successfully', item: params.Item });
+        res.status(200).json({ message: 'Product updated successfully', item: params.Item });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
 // Delete - Remove an existing user
-router.delete('/user/:id', authenticateToken, async (req, res) => {
+router.delete('/product/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const params = {
         TableName: TABLE_NAME,
@@ -148,7 +119,7 @@ router.delete('/user/:id', authenticateToken, async (req, res) => {
     };
     try {
         await ddbDocClient.send(new DeleteCommand(params));
-        res.status(200).json({ message: 'User deleted successfully' });
+        res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
