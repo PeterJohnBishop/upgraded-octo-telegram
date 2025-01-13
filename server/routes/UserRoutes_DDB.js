@@ -32,17 +32,10 @@ function hashString(string) {
     return numericHash;
 }
 
-// User: {
-//     id: string; <-- numericHash
-//     name: string;
-//     email: string;
-//     password: string; c<-- bcrypt.hash(password, 10)
-// }
-
 // Create New User
 router.post('/user', async (req, res) => {
     const { name, email } = req.body;
-    const id = hashString(email);
+    const id = `u_${hashString(email)}`;
     try {
         const password = await bcrypt.hash(req.body.password, 10);
         const params = {
@@ -63,7 +56,7 @@ router.post('/auth', async (req, res) => {
     const user = req.body;
     const params = {
         TableName: TABLE_NAME,
-        Key: { id: hashString(user.email) },
+        Key: { id: `u_${hashString(user.email)}` },
     };
     try {
         const { Item } = await ddbDocClient.send(new GetCommand(params));
