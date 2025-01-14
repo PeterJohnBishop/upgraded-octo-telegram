@@ -89,6 +89,35 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
+router.post('/upload-multiple', upload.array('images', 10), async (req, res) => {
+  const bucketName = process.env.AWS_BUCKET;
+
+  try {
+    const fileUploadPromises = req.files.map((file) => {
+      const key = `uploads/${Date.now()}_${file.originalname}`;
+      return uploadImageToS3(file.path, bucketName, key)
+        .then((fileUrl) => {
+          // Delete the file from the local filesystem after uploading
+          fs.unlinkSync(file.path);
+          return fileUrl;
+        });
+    });
+
+    const uploadedFileUrls = await Promise.all(fileUploadPromises);
+
+    res.status(200).json({
+      message: 'Images uploaded successfully',
+      fileUrls: uploadedFileUrls,
+    });
+  } catch (error) {
+    console.error('Error uploading images:', error);
+    res.status(500).json({
+      message: 'Failed to upload images',
+      error: error.message,
+    });
+  }
+});
+
 router.get('/list', async (req, res) => {
   const bucketName = process.env.AWS_BUCKET;
 

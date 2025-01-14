@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum MenuCategory: String, CaseIterable {
+enum MenuCategory: String, CaseIterable, Identifiable {
     case appetizer = "appetizer"
     case side = "side"
     case entree = "entree"
@@ -17,14 +17,14 @@ enum MenuCategory: String, CaseIterable {
     case wine = "wine"
     case spirits = "spirit"
     case cocktails = "coctail"
+    
+    var id: String { self.rawValue }
 
-    var displayName: String {
-        return self.rawValue
-    }
 }
 
 struct ProductModel: Identifiable, Codable {
     var id: String // Computed as `p_${hashString(name)}`
+    var name: String
     var description: String
     var image: String
     var price: Double
