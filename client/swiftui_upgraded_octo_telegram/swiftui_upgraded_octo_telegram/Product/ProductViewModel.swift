@@ -11,7 +11,7 @@ import SwiftUI
 
 class ProductViewModel: Observable {
     var products: [ProductModel] = []
-    var product: ProductModel = ProductModel(id: "", name: "", description: "", image: "", price: 0.00, category: "", featured: false)
+    var product: ProductModel = ProductModel(id: "", name: "", description: "", images: [], price: 0.00, category: "", featured: false)
     var errorMessage: String? = nil
     
     let baseURL = "http://localhost:8080/products"

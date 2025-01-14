@@ -20,7 +20,12 @@ struct CreateProductView: View {
     @State var sourceType: SourceType = .photoLibrary
     @State var uploaded: Bool = false
     @State var uploadType: String = "multiple"
+    @State var created: Bool = false
+    @State var showAlert: Bool = false
 
+    func formattedPrice(from input: String) -> Double {
+            return Double(input) ?? 0.00
+        }
     
     var body: some View {
         ScrollView {
@@ -32,9 +37,12 @@ struct CreateProductView: View {
                             Image(uiImage: selectedImages[index])
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 200, height: 200)
-                                .clipShape(Circle())
+                                .frame(width: 325, height: 325)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+                                .onTapGesture {
+                                    selectedImages.removeAll()
+                                }
                         }
                     }
                     .padding(.horizontal)
@@ -132,6 +140,7 @@ struct CreateProductView: View {
                 ).padding(EdgeInsets(top: 8, leading: 8, bottom: 0, trailing: 8))
                 TextField("$ Price", text: $priceInput)
                     .tint(.black)
+                    .keyboardType(.decimalPad)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .padding()
@@ -142,7 +151,22 @@ struct CreateProductView: View {
                 .toggleStyle(SwitchToggleStyle(tint: .black))
                 .padding(EdgeInsets(top: 0, leading: 14, bottom: 0, trailing: 14))
                 Button("Submit", action: {
-                    
+                    productVM.product.images = s3ViewModel.imageUrls
+                    productVM.product.price = formattedPrice(from: priceInput)
+                    productVM.product.category = selectedCategory.id
+                    Task{
+                        do {
+                            let newProduct = try                         await productVM.createProduct(newProduct: productVM.product)
+                            DispatchQueue.main.async {
+                                created = newProduct
+                            }
+                        } catch {
+                            DispatchQueue.main.async {
+                                showAlert = true
+                                productVM.errorMessage = error.localizedDescription
+                            }
+                        }
+                    }
                 })
                 .fontWeight(.ultraLight)
                 .foregroundColor(.black)

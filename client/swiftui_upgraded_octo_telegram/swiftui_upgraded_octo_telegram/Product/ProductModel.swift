@@ -26,7 +26,7 @@ struct ProductModel: Identifiable, Codable {
     var id: String // Computed as `p_${hashString(name)}`
     var name: String
     var description: String
-    var image: String
+    var images: [String]
     var price: Double
     var category: String
     var featured: Bool
