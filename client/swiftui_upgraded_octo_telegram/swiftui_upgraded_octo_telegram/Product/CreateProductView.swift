@@ -70,7 +70,7 @@ struct CreateProductView: View {
                     sourceType = .camera
                     self.showCamera.toggle()
                 }, label: {
-                    Image(systemName: "person.fill.viewfinder")
+                    Image(systemName: "camera.circle")
                         .resizable()
                         .frame(width: 50, height: 50)
                         .foregroundStyle(.black)

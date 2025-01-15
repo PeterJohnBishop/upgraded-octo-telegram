@@ -19,10 +19,10 @@ struct ImagePickerView: View {
             maxSelectionCount: uploadType == "profile" ? 1 : 6,
             matching: uploadType == "profile" ? .any(of: [.images]) : .any(of: [.images, .videos]),
             photoLibrary: .shared()) {
-                Image(systemName: "photo.badge.plus").resizable()
+                Image(systemName: "photo.circle.fill").resizable()
                     .fontWeight(.ultraLight)
                     .foregroundStyle(.black)
-                    .frame(width: 60, height: 50)
+                    .frame(width: 50, height: 50)
             }
             .onChange(of: imagePickerViewModel.selectedItems) { oldItems, newItems in
 

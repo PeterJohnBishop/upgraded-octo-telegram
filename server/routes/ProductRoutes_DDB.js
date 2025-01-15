@@ -31,13 +31,13 @@ function hashString(string) {
 }
 
 // Create New Product
-router.post('/product', async (req, res) => {
-    const { name, description, image, price, category, featured } = req.body;
+router.post('/product', authenticateToken, async (req, res) => {
+    const { name, description, images, price, category, featured } = req.body;
     const id = `p_${hashString(name)}`;
     try {
         const params = {
             TableName: TABLE_NAME,
-            Item: { id, name, description, image, price, category, featured }, 
+            Item: { id, name, description, images, price, category, featured }, 
         };
         await ddbDocClient.send(new PutCommand(params));
         res.status(201).json({ message: 'Product created successfully', item: params.Item });
@@ -71,6 +71,7 @@ router.get('/', authenticateToken, async (req, res) => {
     };
     try {
         const { Items } = await ddbDocClient.send(new ScanCommand(params));
+        console.log(Items)
         res.status(200).json(Items);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -80,15 +81,15 @@ router.get('/', authenticateToken, async (req, res) => {
 // Update - Modify an existing product
 router.put('/product/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { name, description, image, price, category, featured } = req.body;
+    const { name, description, images, price, category, featured } = req.body;
     const params = {
         TableName: TABLE_NAME,
         Key: { id },
-        UpdateExpression: 'set #name = :name, #description = :description, #image = :image, #price = :price, #category = :category, #featured = :featured',
+        UpdateExpression: 'set #name = :name, #description = :description, #images = :images, #price = :price, #category = :category, #featured = :featured',
         ExpressionAttributeNames: {
             '#name': 'name',
             '#description': 'description',
-            '#image': 'image',
+            '#images': 'images',
             '#price': 'price',
             '#cateogry': 'cateogry',
             '#featured': 'featured'
@@ -96,7 +97,7 @@ router.put('/product/:id', authenticateToken, async (req, res) => {
         ExpressionAttributeValues: {
             ':name': name,
             ':description': description,
-            ':image': image,
+            ':images': images,
             ':price': price,
             ':category': category,
             ':featured': featured

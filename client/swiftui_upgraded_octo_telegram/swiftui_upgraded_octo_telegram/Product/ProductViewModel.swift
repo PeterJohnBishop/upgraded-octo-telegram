@@ -43,6 +43,24 @@ class ProductViewModel: Observable {
         }
     }
     
+    func fetchProductss() async throws -> [ProductModel] {
+        guard let url = URL(string: "\(baseURL)/") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        guard let jwt = UserDefaults.standard.string(forKey: "jwtToken") else {
+            throw NSError(domain: "", code: 401, userInfo: [NSLocalizedDescriptionKey: "JWT not available"])
+        }
+
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONDecoder().decode([ProductModel].self, from: data)
+    }
+    
     func fetchProductById(productId: String) async throws -> ProductModel {
         guard let url = URL(string: "\(baseURL)/product/\(productId)") else {
             throw URLError(.badURL)
