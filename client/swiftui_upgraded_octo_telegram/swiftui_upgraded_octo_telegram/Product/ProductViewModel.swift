@@ -18,6 +18,7 @@ class ProductViewModel: Observable {
 
     // Create a new product
     func createProduct(newProduct: ProductModel) async throws -> Bool {
+        print("iOS: Sending Create Product Request")
         guard let url = URL(string: "\(baseURL)/product") else {
             throw URLError(.badURL)
         }
@@ -26,18 +27,28 @@ class ProductViewModel: Observable {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(newProduct)
         
+        guard let jwt = UserDefaults.standard.string(forKey: "jwtToken") else {
+            throw NSError(domain: "", code: 401, userInfo: [NSLocalizedDescriptionKey: "JWT not available"])
+        }
+
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        
+        print("iOS: \(request)")
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 201 {
+                print("iOS: Product Created: 201 response")
                 return true
             } else {
+                print("iOS: 500 Error!")
                 throw URLError(.badServerResponse)
             }
         } catch {
             // Handle and propagate errors
             DispatchQueue.main.async {
                 self.errorMessage = error.localizedDescription
+                print(self.errorMessage)
             }
             throw error
         }

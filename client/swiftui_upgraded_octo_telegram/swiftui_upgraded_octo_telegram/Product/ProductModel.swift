@@ -8,15 +8,16 @@
 import Foundation
 
 enum MenuCategory: String, CaseIterable, Identifiable {
-    case appetizer = "appetizer"
-    case side = "side"
-    case entree = "entree"
-    case desserts = "dessert"
-    case naBeverages = "naBeverage"
-    case beer = "beer"
-    case wine = "wine"
-    case spirits = "spirit"
-    case cocktails = "coctail"
+    case appetizer = "Appetizer"
+    case side = "Side"
+    case entree = "Entree"
+    case desserts = "Dessert"
+    case naBeverages = "N/A Beverage"
+    case beer = "Beer"
+    case wine = "Wine"
+    case spirits = "Spirit"
+    case cocktails = "Cocktail"
+    case all = "all"
     
     var id: String { self.rawValue }
 

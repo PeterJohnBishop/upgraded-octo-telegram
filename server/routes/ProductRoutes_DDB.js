@@ -30,6 +30,21 @@ function hashString(string) {
     return numericHash;
 }
 
+const calculateItemSize = (item) => {
+    const getSize = (value) => {
+        if (typeof value === 'string') return Buffer.byteLength(value, 'utf8');
+        if (typeof value === 'number') return value.toString().length;
+        if (typeof value === 'boolean' || value === null) return 1;
+        if (Array.isArray(value)) return value.reduce((sum, el) => sum + getSize(el), 3); // Add 3 bytes overhead
+        if (typeof value === 'object') return Object.entries(value).reduce((sum, [k, v]) => sum + getSize(k) + getSize(v), 3); // Add 3 bytes overhead
+        return 0; // Unknown type
+    };
+
+    return Object.entries(item).reduce((sum, [key, value]) => {
+        return sum + getSize(key) + getSize(value) + 3; // Add 3 bytes overhead
+    }, 0);
+};
+
 // Create New Product
 router.post('/product', authenticateToken, async (req, res) => {
     const { name, description, images, price, category, featured } = req.body;
@@ -39,6 +54,9 @@ router.post('/product', authenticateToken, async (req, res) => {
             TableName: TABLE_NAME,
             Item: { id, name, description, images, price, category, featured }, 
         };
+        
+        console.log(params);
+        console.log(calculateItemSize(params.Item))
         await ddbDocClient.send(new PutCommand(params));
         res.status(201).json({ message: 'Product created successfully', item: params.Item });
     } catch (error) {

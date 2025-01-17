@@ -12,7 +12,6 @@ struct CreateProductView: View {
     @State private var selectedCategory: MenuCategory = .appetizer
     @State private var priceInput: String = ""
     @State private var featuredSelection: Bool = false
-    
     @State var s3ViewModel: S3ViewModel = S3ViewModel()
     @State var imagePickerViewModel: ImagePickerViewModel = ImagePickerViewModel()
     @State var selectedImages: [UIImage] = []
@@ -22,6 +21,7 @@ struct CreateProductView: View {
     @State var uploadType: String = "multiple"
     @State var created: Bool = false
     @State var showAlert: Bool = false
+    @Binding var currentUser: UserModel
 
     func formattedPrice(from input: String) -> Double {
             return Double(input) ?? 0.00
@@ -176,11 +176,20 @@ struct CreateProductView: View {
                         .fill(Color.white)
                         .shadow(color: .gray.opacity(0.4), radius: 4, x: 2, y: 2)
                 )
+                .navigationDestination(isPresented: $created, destination: {
+                    HomeView(currentUser: $currentUser)
+                })
+            
+        }.onAppear{
             
         }
     }
 }
 
-#Preview {
-    CreateProductView()
+struct CreateProduct_Previews: PreviewProvider {
+    @State static var sampleUser = UserModel(id: "99999999", name: "Mike Ellingsworth", email: "m.ellingsworth@gmail.com", password: "123456789ABC")
+
+    static var previews: some View {
+        HomeView(currentUser: $sampleUser)
+    }
 }
