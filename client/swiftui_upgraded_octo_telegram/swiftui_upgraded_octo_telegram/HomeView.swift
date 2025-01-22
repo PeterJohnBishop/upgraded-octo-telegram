@@ -17,34 +17,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack{
             VStack{
-                HStack{
-                    Button(action: {
-                        UserDefaults.standard.removeObject(forKey: "jwtToken")
-                        logout = true
-                    }, label: {
-                        Image(systemName: "chevron.left")
-                            .resizable()
-                            .frame(width: 30, height: 40)
-                            .foregroundStyle(.black)
-                    }).padding()
-                        .navigationDestination(isPresented: $logout, destination: {
-                            LoginView().navigationBarBackButtonHidden(true)
-                        })
-                    Spacer()
-                    Button(action: {
-                        addProduct = true
-                    }, label: {
-                        Image(systemName: "plus")
-                            .resizable()
-                            .frame(width: 40, height: 40)
-                            .foregroundStyle(.black)
-                    }).padding()
-                        .navigationDestination(isPresented: $addProduct, destination: {
-                            CreateProductView(currentUser: $currentUser).navigationBarBackButtonHidden(true)
-                        })
-                }.padding()
-                Spacer()
-                showSelection(selected: $selection)
+                showSelection(selected: $selection, currentUser: $currentUser)
                 Spacer()
                 HStack{
                     Spacer()
@@ -94,7 +67,9 @@ struct HomeView: View {
                     })
                     Spacer()
                 }
-            }.onAppear{
+            }.padding()
+                .edgesIgnoringSafeArea([.leading, .trailing, .bottom])
+            .onAppear{
                 token = UserDefaults.standard.string(forKey: "jwtToken") ?? "Token Not Found"
                 SocketService.shared.socket.emit("verifyToken", ["token": token])
             }
@@ -104,13 +79,14 @@ struct HomeView: View {
 
 struct showSelection: View {
     @Binding var selected: Int
+    @Binding var currentUser: UserModel
     
     var body: some View {
         if selected == 0 {
             UserAccountView()
         }
         if selected == 1 {
-            ListMenuView()
+            ListMenuView(currentUser: $currentUser).ignoresSafeArea()
         }
         if selected == 2 {
             CreateOrderView()

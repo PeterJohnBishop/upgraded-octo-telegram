@@ -45,34 +45,13 @@ class ProductViewModel: Observable {
                 throw URLError(.badServerResponse)
             }
         } catch {
-            // Handle and propagate errors
-            DispatchQueue.main.async {
-                self.errorMessage = error.localizedDescription
-                print(self.errorMessage)
-            }
+            self.errorMessage = error.localizedDescription
+            print(self.errorMessage ?? "Error: UNKNOWN")
             throw error
         }
     }
     
-    func fetchProductss() async throws -> [ProductModel] {
-        guard let url = URL(string: "\(baseURL)/") else {
-            throw URLError(.badURL)
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-
-        guard let jwt = UserDefaults.standard.string(forKey: "jwtToken") else {
-            throw NSError(domain: "", code: 401, userInfo: [NSLocalizedDescriptionKey: "JWT not available"])
-        }
-
-        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONDecoder().decode([ProductModel].self, from: data)
-    }
-    
-    func fetchProductById(productId: String) async throws -> ProductModel {
+    func fetchProductById(productId: String) async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/product/\(productId)") else {
             throw URLError(.badURL)
         }
@@ -87,7 +66,29 @@ class ProductViewModel: Observable {
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONDecoder().decode(ProductModel.self, from: data)
+        let responseData = try JSONDecoder().decode(ProductModel.self, from: data)
+        self.product = responseData
+        return true
+    }
+    
+    func fetchProducts() async throws -> Bool {
+        guard let url = URL(string: "\(baseURL)/") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        guard let jwt = UserDefaults.standard.string(forKey: "jwtToken") else {
+            throw NSError(domain: "", code: 401, userInfo: [NSLocalizedDescriptionKey: "JWT not available"])
+        }
+
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let responseData = try JSONDecoder().decode([ProductModel].self, from: data)
+        self.products = responseData
+        return true
     }
     
     func updateProduct(productId: String, updatedProduct: ProductModel) async throws -> Bool {

@@ -9,18 +9,21 @@ import SwiftUI
 
 struct ListUsersView: View {
     @State private var userVM: UserViewModel = UserViewModel()
-    @State private var allUsers: [UserModel] = []
+    @State private var usersFetched: Bool = false
     @State private var showAlert: Bool = false
     let currentUserId = UserDefaults.standard.string(forKey: "user_id")
     
     var body: some View {
         ScrollView {
-            if allUsers.isEmpty {
+            if !usersFetched {
                 ProgressView()
                     .onAppear {
                         Task {
                             do {
-                                allUsers = try await userVM.fetchUsers()
+                                let success = try await userVM.fetchUsers()
+                                DispatchQueue.main.async {
+                                    usersFetched = success
+                                }
                             } catch {
                                 DispatchQueue.main.async {
                                     showAlert = true
@@ -30,7 +33,7 @@ struct ListUsersView: View {
                         }
                     }
             } else {
-                ForEach(allUsers, id: \.id) { user in
+                ForEach(userVM.users, id: \.id) { user in
                     if user.id != currentUserId {
                         Text(user.name)
                     }

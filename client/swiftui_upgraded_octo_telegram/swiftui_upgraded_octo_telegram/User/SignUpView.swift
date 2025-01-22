@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SignUpView: View {
     @State var userVM: UserViewModel = UserViewModel()
-    @State var newUser: UserModel = UserModel(id: "", name: "", email: "", password: "")
     @State var confirmPassword: String = ""
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false
@@ -23,18 +22,18 @@ struct SignUpView: View {
                 Text("SignUp").font(.system(size: 34))
                     .fontWeight(.ultraLight)
                 Divider().padding()
-                TextField("Name", text: $newUser.name)
+                TextField("Name", text: $userVM.user.name)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .padding()
-                TextField("Email", text: $newUser.email)
+                TextField("Email", text: $userVM.user.email)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .padding()
                 
-                SecureField("Password", text: $newUser.password)
+                SecureField("Password", text: $userVM.user.password)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
@@ -49,10 +48,10 @@ struct SignUpView: View {
                     .textContentType(.oneTimeCode)
                 
                 Button("Submit", action: {
-                    if confirmPassword == newUser.password {
+                    if confirmPassword == userVM.user.password {
                         Task {
                             do {
-                                let created = try await userVM.createUser(newUser: newUser)
+                                let created = try await userVM.createUser()
                                     userCreated = created
                             } catch {
                                 userVM.errorMessage = "An error occurred: \(error.localizedDescription)"

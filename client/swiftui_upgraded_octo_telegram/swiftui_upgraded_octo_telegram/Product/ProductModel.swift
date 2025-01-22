@@ -23,7 +23,7 @@ enum MenuCategory: String, CaseIterable, Identifiable {
 
 }
 
-struct ProductModel: Identifiable, Codable {
+struct ProductModel: Identifiable, Codable, Equatable {
     var id: String // Computed as `p_${hashString(name)}`
     var name: String
     var description: String

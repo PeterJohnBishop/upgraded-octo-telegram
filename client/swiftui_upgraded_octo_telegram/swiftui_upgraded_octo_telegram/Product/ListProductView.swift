@@ -9,18 +9,21 @@ import SwiftUI
 
 struct ListProductView: View {
     @State private var productVM: ProductViewModel = ProductViewModel()
-    @State private var allProducts: [ProductModel] = []
+    @State private var productsFetched: Bool = false
     @State private var showAlert: Bool = false
     var showCategory: MenuCategory.ID
     
     var body: some View {
         ScrollView {
-            if allProducts.isEmpty {
-                Text("No \(showCategory)s today")
+            if !productsFetched {
+                ProgressView()
                     .onAppear {
                         Task {
                             do {
-                                allProducts = try await productVM.fetchProductss()
+                                let success = try await productVM.fetchProducts()
+                                DispatchQueue.main.async {
+                                    productsFetched = success
+                                }
                             } catch {
                                 DispatchQueue.main.async {
                                     showAlert = true
@@ -30,7 +33,7 @@ struct ListProductView: View {
                         }
                     }
             } else {
-                ForEach(allProducts, id: \.id) { prod in
+                ForEach(productVM.products, id: \.id) { prod in
                     if showCategory == "all" {
                         HStack{
                             AsyncAwaitImageView(imageUrl: URL(string: prod.images[0])!)

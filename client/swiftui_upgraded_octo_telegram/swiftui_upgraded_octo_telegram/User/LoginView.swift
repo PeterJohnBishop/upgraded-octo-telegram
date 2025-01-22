@@ -9,7 +9,6 @@ import SwiftUI
 
 struct LoginView: View {
     @State var userVM: UserViewModel = UserViewModel()
-    @State var currentUser: UserModel = UserModel(id: "", name: "", email: "", password: "")
     @State var confirmPassword: String = ""
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false
@@ -24,12 +23,12 @@ struct LoginView: View {
                 Text("Login").font(.system(size: 34))
                     .fontWeight(.ultraLight)
                 Divider().padding()
-                TextField("Email", text: $currentUser.email)
+                TextField("Email", text: $userVM.user.email)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .padding()
-                SecureField("Password", text: $currentUser.password)
+                SecureField("Password", text: $userVM.user.password)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
@@ -39,7 +38,7 @@ struct LoginView: View {
                     Button("Submit", action: {
                         Task{
                             do {
-                                let authenticated = try await userVM.authenticateUser(email: currentUser.email, password: currentUser.password)
+                                let authenticated = try await userVM.authenticateUser()
                                 DispatchQueue.main.async {
                                     userAuthenticated = authenticated
                                 }

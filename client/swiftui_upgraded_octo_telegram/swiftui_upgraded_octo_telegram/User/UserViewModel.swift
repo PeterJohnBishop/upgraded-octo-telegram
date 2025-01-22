@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import SwiftUI
 
+@MainActor
 class UserViewModel: Observable {
     var users: [UserModel] = [] // List of all users
     var user: UserModel = UserModel(id: "", name: "", email: "", password: "")  
@@ -31,14 +32,14 @@ class UserViewModel: Observable {
     let baseURL = "http://localhost:8080/users" 
 
     // Create a new user
-    func createUser(newUser: UserModel) async throws -> Bool {
+    func createUser() async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/user") else {
             throw URLError(.badURL)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(newUser)
+        request.httpBody = try JSONEncoder().encode(user)
         
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
@@ -49,16 +50,13 @@ class UserViewModel: Observable {
                 throw URLError(.badServerResponse)
             }
         } catch {
-            // Handle and propagate errors
-            DispatchQueue.main.async {
-                self.errorMessage = error.localizedDescription
-            }
+            self.errorMessage = error.localizedDescription
             throw error
         }
     }
     
     // Authenticate user
-    func authenticateUser(email: String, password: String) async throws -> Bool {
+    func authenticateUser() async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/auth") else {
             throw URLError(.badURL)
         }
@@ -67,7 +65,7 @@ class UserViewModel: Observable {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = ["email": email, "password": password]
+        let body = ["email": user.email, "password": user.password]
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -89,7 +87,7 @@ class UserViewModel: Observable {
     }
     
     // Read one user by ID
-    func fetchUserById(userId: String) async throws -> UserModel {
+    func fetchUserById(userId: String) async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/user/\(userId)") else {
             throw URLError(.badURL)
         }
@@ -104,11 +102,13 @@ class UserViewModel: Observable {
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONDecoder().decode(UserModel.self, from: data)
+        let responseData = try JSONDecoder().decode(UserModel.self, from: data)
+        self.user = responseData
+        return true
     }
     
     // Read all users
-    func fetchUsers() async throws -> [UserModel] {
+    func fetchUsers() async throws -> Bool {
         guard let url = URL(string: "\(baseURL)/") else {
             throw URLError(.badURL)
         }
@@ -123,19 +123,21 @@ class UserViewModel: Observable {
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONDecoder().decode([UserModel].self, from: data)
+        let responseData = try JSONDecoder().decode([UserModel].self, from: data)
+        self.users = responseData
+        return true
     }
     
     // Update a user
-    func updateUser(userId: String, updatedUser: UserModel) async throws -> Bool {
-        guard let url = URL(string: "\(baseURL)/user/\(userId)") else {
+    func updateUser() async throws -> Bool {
+        guard let url = URL(string: "\(baseURL)/user/\(user.id)") else {
             throw URLError(.badURL)
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(updatedUser)
+        request.httpBody = try JSONEncoder().encode(user)
 
         guard let jwt = UserDefaults.standard.string(forKey: "jwtToken") else {
             throw NSError(domain: "", code: 401, userInfo: [NSLocalizedDescriptionKey: "JWT not available"])
@@ -153,8 +155,8 @@ class UserViewModel: Observable {
     }
 
     // Delete a user
-    func deleteUser(userId: String) async throws -> Bool {
-        guard let url = URL(string: "\(baseURL)/user/\(userId)") else {
+    func deleteUser() async throws -> Bool {
+        guard let url = URL(string: "\(baseURL)/user/\(user.id)") else {
             throw URLError(.badURL)
         }
 

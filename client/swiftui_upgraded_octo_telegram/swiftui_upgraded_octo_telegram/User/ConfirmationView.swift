@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ConfirmationView: View {
     @State var userVM: UserViewModel = UserViewModel()
-    @State var currentUser: UserModel = UserModel(id: "", name: "", email: "", password: "")
     @State var confirmPassword: String = ""
     @State var existingUser: Bool = false
     @State var showAlert: Bool = false
@@ -25,12 +24,12 @@ struct ConfirmationView: View {
                 Text("You can now login.").font(.system(size: 24))
                     .fontWeight(.ultraLight)
                 Divider().padding()
-                TextField("Email", text: $currentUser.email)
+                TextField("Email", text: $userVM.user.email)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .padding()
-                SecureField("Password", text: $currentUser.password)
+                SecureField("Password", text: $userVM.user.password)
                     .tint(.black)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
@@ -39,7 +38,7 @@ struct ConfirmationView: View {
                 if SocketService.shared.connected {
                     Button("Submit", action: {
                         Task{
-                            let authenticated = try await userVM.authenticateUser(email: currentUser.email, password: currentUser.password)
+                            let authenticated = try await userVM.authenticateUser()
                                 if authenticated {
                                     userAuthenticated = authenticated
                                     SocketService.shared.socket.emit("userAuthenticated", ["user": userVM.user.name])
