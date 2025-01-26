@@ -12,6 +12,8 @@ import AWSDynamoDBRoutes from './routes/AWS_DynamoDB.js';
 import UserRoutesDDB from './routes/UserRoutes_DDB.js';
 import ProductRoutesDDB from './routes/ProductRoutes_DDB.js'
 
+import CLickUpAttachmentRoute from './routes/ClickUpAttachment.js'
+
 const app = express();
 dotenv.config();
 
@@ -73,14 +75,15 @@ const configureSocketIO = (io) => {
 configureSocketIO(io); 
 
 // Routes
-app.get('/', (_req, res, _next) => {
-    res.send('Welcome to Symmetrical Server!');
-  });
+// app.get('/', (_req, res, _next) => {
+//     res.send('Welcome to Symmetrical Server!');
+//   });
 app.use('/s3', AWSS3Routes);
 app.use('/rekognition', AWSRekognitionRoutes);
 app.use('/dynamodb', AWSDynamoDBRoutes);
 app.use('/users', UserRoutesDDB);
 app.use('/products', ProductRoutesDDB)
+app.use('/clickup', CLickUpAttachmentRoute);
 
 // Start the server
 const PORT = process.env.PORT;

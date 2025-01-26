@@ -5,11 +5,17 @@ function Home () {
         <Container fluid>
             <Row>
                 <Col>
-                    <Button onClick={()=>{}} variant='light' >SignUp</Button>
+                <form method="POST" action="/profile-upload-single" enctype="multipart/form-data">
+    <div>
+        <label>Upload profile picture</label>
+        <input type="file" name="profile-file" required/>
+    </div>
+    <div>
+        <input type="submit" value="Upload" />
+    </div>
+</form>
                 </Col>
-                <Col>
-                    <Button onClick={()=>{}} variant='light' >Login</Button>
-                </Col>
+                
             </Row>
         </Container>
     )
